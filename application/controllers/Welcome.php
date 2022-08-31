@@ -11,24 +11,19 @@ class Welcome extends CI_Controller
 		$this->INPUT = $this->input->post();
 	}
 
-	/**
-	 * Index Page for this controller.
-	 *
-	 * Maps to the following URL
-	 * 		http://example.com/index.php/welcome
-	 *	- or -
-	 * 		http://example.com/index.php/welcome/index
-	 *	- or -
-	 * Since this controller is set as the default controller in
-	 * config/routes.php, it's displayed at http://example.com/
-	 *
-	 * So any other public methods not prefixed with an underscore will
-	 * map to /index.php/welcome/<method_name>
-	 * @see https://codeigniter.com/user_guide/general/urls.html
-	 */
 	public function index()
 	{
-		$data['expedisi'] = $this->db->get('expedisi')->result_array();
+		// $data['expedisi'] = $this->db->get('expedisi')->result_array();
+		$data['expedisi'] = [
+			[
+				'kode' => 'jnt',
+				'nama' => 'J&T'
+			],
+			[
+				'kode' => 'sicepat',
+				'nama' => 'Sicepat'
+			],
+		];
 		$this->load->view('welcome_message', $data);
 	}
 
@@ -38,8 +33,8 @@ class Welcome extends CI_Controller
 		$resi = array_map('trim', $resi);
 		$this->INPUT['resi'] = $resi;
 		$data['data'] = $this->INPUT;
-		$data['append'] = $this->load->view('append/resi', $this->INPUT);
-		// $data['append'] = $this->_append($this->INPUT);
+		// $data['append'] = $this->load->view('append/resi', $this->INPUT);
+		$data['append'] = $this->_append($this->INPUT);
 		echo json_encode($data);
 	}
 
@@ -50,9 +45,14 @@ class Welcome extends CI_Controller
 
 	private function _append($data)
 	{
-		$html = "<p>Expedisi = " . $data['expedisi'] . "</p>";
+		$html = "";
 		foreach ($data['resi'] as $r) {
-			$html .= "<p class='$r'>Resi = " . $r . "</p>";
+			// $html .= "<p class='$r'>Resi = " . $r . "</p>";
+
+			$html .= "<tr>
+						<td>$r</td>
+						<td class='$r'></td>
+					</tr>";
 		}
 		return $html;
 	}

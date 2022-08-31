@@ -19,7 +19,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 	<div class="container p-3">
 		<h1>Cek Resi</h1>
 
-		<!-- <form action="welcome/post" method="post"> -->
+		<!-- <form action="welcome/cekresi" method="post"> -->
 		<div class="form-floating">
 			<select name="expedisi" class="form-select" id="floatingSelect" aria-label="Floating label select example" required>
 				<option value="" selected disabled>-- PILIH EXPEDISI --</option>
@@ -33,9 +33,21 @@ defined('BASEPATH') or exit('No direct script access allowed');
 			<textarea name="resi" class="form-control" style="height: 250px;" id="resi"></textarea>
 			<label for="resi">NO RESI</label>
 		</div>
-		<button class="cek btn btn-danger mt-3" type="submit">Proses</button>
+		<button class="cek btn btn-danger my-3" type="submit">Proses</button>
 		<!-- </form> -->
-		<div class="result mt-3"></div>
+		<!-- <div class="result mt-3"></div> -->
+		<table id="myTable" class="mt-3" style="width: 100%">
+			<thead>
+				<tr>
+					<th>Resi</th>
+					<th>Status</th>
+				</tr>
+			</thead>
+			<tbody class="result"></tbody>
+		</table>
+		<tr>
+			<td></td>
+		</tr>
 	</div>
 
 	<!-- Optional JavaScript; choose one of the two! -->
@@ -58,6 +70,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 			var resi = r.value;
 			$.ajax({
 				type: 'post',
+				dataType: 'json',
 				url: '<?= base_url('welcome/post'); ?>',
 				data: {
 					expedisi: expedisi,
@@ -67,8 +80,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 			});
 		});
 
-		function proses(params) {
-			var data = JSON.parse(params);
+		function proses(data) {
 			$('.result').append(data.append);
 			data.data.resi.forEach(element => {
 				$.ajax({
@@ -80,19 +92,36 @@ defined('BASEPATH') or exit('No direct script access allowed');
 					},
 					success: (data) => {
 						var data = JSON.parse(data);
-						console.log(data);
-						if (data['rajaongkir']['status']['code'] == 200) {
-							var status = data['rajaongkir']['result']['delivery_status']['status'];
-							switch (status) {
-								case 'DELIVERED':
-									$('.' + element).append(' <span class="bg-success">' + status + '</span>');
-									break;
-								case 'ON PROCESS':
-									$('.' + element).append(' <span class="bg-info">' + status + '</span>');
-									break;
+						console.log(data['rajaongkir']);
+						if (data['rajaongkir']['status']['code'] == 200) { // Response
+							var result = data['rajaongkir']['result'];
+							var kurir = data['rajaongkir']['query']['courier']
 
-								default:
-									break;
+
+							if (!result['delivered']) { // Status sampai
+								var manifestLength = result['manifest'].length - 1;
+								var manifest;
+
+								if (kurir == 'sicepat') {
+									manifest = result['manifest'][manifestLength]['manifest_code'];
+								} else {
+									manifest = result['manifest'][0]['manifest_code'];
+								}
+								console.log(manifest);;
+
+								switch (manifest) {
+									case '9':
+										$('.' + element).append(' <span class="bg-danger">RETUR</span>');
+										break;
+									case 'RETURN TO SHIPPER':
+										$('.' + element).append(' <span class="bg-danger">RETUR</span>');
+										break;
+									default:
+										$('.' + element).append(' <span class="bg-info">' + result['delivery_status']['status'] + '</span>');
+										break;
+								}
+							} else {
+								$('.' + element).append(' <span class="bg-success">' + result['delivery_status']['status'] + '</span>');
 							}
 						} else {
 							$('.' + element).append(' ERROR');
